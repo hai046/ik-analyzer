@@ -8,7 +8,7 @@
     <description>A dictionary and grammar-based Chinese segmenter.</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <lucene.version>8.4.0</lucene.version>
+        <lucene.version>8.7.0</lucene.version>
         <jdk.version>1.8</jdk.version>
     </properties>
 
@@ -41,8 +41,19 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>
 
+    </dependencies>
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <url>http://192.168.10.1:8081/nexus/content/repositories/releases</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://192.168.10.1:8081/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
     <build>
         <plugins>
             <plugin>
