@@ -31,10 +31,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -297,6 +294,23 @@ public class Dictionary {
                 load(mainDict, extDictName, v -> extraDic.put(v, finalName));
             }
         }
+    }
+
+    public void loadOutsideDict(String wordType, Set<String> words) {
+
+        words.forEach(word -> {
+            mainDict.fillSegment(word.trim().toLowerCase().toCharArray());
+            extraDic.put(word, wordType);
+        });
+
+    }
+
+    public void removeOutsideDict(Set<String> words) {
+        words.forEach(word -> {
+            mainDict.disableSegment(word.trim().toLowerCase().toCharArray());
+            extraDic.remove(word);
+        });
+
     }
 
     public String getDicName(String word) {

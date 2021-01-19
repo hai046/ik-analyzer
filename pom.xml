@@ -1,7 +1,7 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wltea.ik-analyzer</groupId>
+    <groupId>com.medical</groupId>
     <artifactId>ik-analyzer</artifactId>
     <version>8.4.0</version>
     <name>IK Analyzer</name>
@@ -32,6 +32,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
+            <optional>true</optional>
             <version>1.2.3</version>
         </dependency>
 
