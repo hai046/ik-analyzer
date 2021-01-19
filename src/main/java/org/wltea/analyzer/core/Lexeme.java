@@ -38,8 +38,6 @@ public class Lexeme implements Comparable<Lexeme> {
     public static final int TYPE_LETTER = 3;
     //中文词元
     public static final int TYPE_CNWORD = 4;
-    //中文单字
-    public static final int TYPE_CNCHAR = 64;
     //日韩文字
     public static final int TYPE_OTHER_CJK = 8;
     //中文数词
@@ -48,6 +46,10 @@ public class Lexeme implements Comparable<Lexeme> {
     public static final int TYPE_COUNT = 32;
     //中文数量词
     public static final int TYPE_CQUAN = 48;
+    //中文单字
+    public static final int TYPE_CNCHAR = 64;
+    //违禁词
+    public static final int TYPE_FORBIDDEN = 128;
     //词元的起始位移
     private int offset;
     //词元的相对起始位置
@@ -249,7 +251,8 @@ public class Lexeme implements Comparable<Lexeme> {
 
             case TYPE_CQUAN:
                 return "TYPE_CQUAN";
-
+            case TYPE_FORBIDDEN:
+                return "TYPE_FORBIDDEN";
             default:
                 return "UNKONW";
         }

@@ -58,7 +58,11 @@ public interface Configuration {
      *
      * @return String 量词词典路径
      */
-    String getQuantifierDicionary();
+    String getQuantifierDictionary();
+
+    String getForbiddenDictionary();
+
+
 
     /**
      * 获取扩展字典配置路径

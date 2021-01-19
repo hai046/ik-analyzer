@@ -23,16 +23,18 @@
  */
 package org.wltea.analyzer.sample;
 
-import java.io.IOException;
-import java.io.StringReader;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import org.junit.Test;
+import org.wltea.analyzer.dic.Dictionary;
 import org.wltea.analyzer.lucene.IKAnalyzer;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.stream.IntStream;
 
 /**
  * 使用IKAnalyzer进行分词的演示
@@ -44,12 +46,13 @@ public class IKAnalzyerTest {
     public void testAnalyzer() {
         //构建IK分词器，使用smart分词模式
         Analyzer analyzer = new IKAnalyzer(true);
-
         //获取Lucene的TokenStream对象
         TokenStream ts = null;
+        String msg = "这是一个中文分词的例子，好大夫在线A股你可以直接运行它！ 找我靠我来搞，我靠你怎么能这样，我靠wechat wxin IKAnalyer can analysis english text too";
+        StringBuilder sb = new StringBuilder(msg);
         try {
             ts = analyzer.tokenStream("myfield",
-                    new StringReader("这是一个中文分词的例子，你可以直接运行它！IKAnalyer can analysis english text too"));
+                    new StringReader(msg));
             //获取词元位置属性
             OffsetAttribute offset = ts.addAttribute(OffsetAttribute.class);
             //获取词元文本属性
@@ -61,13 +64,18 @@ public class IKAnalzyerTest {
             ts.reset();
             //迭代获取分词结果
             while (ts.incrementToken()) {
+                final String dicName = Dictionary.getSingleton().getDicName(term.toString());
+                if ("hide".equals(dicName)) {
+                    sb.replace(offset.startOffset(), offset.endOffset(), hideChar(offset.endOffset() - offset.startOffset()));
+                } else if ("forbid".equals(dicName)) {
+//                    throw new ForbiddenException("");
+                }
                 System.out.println(
                         offset.startOffset() + " - " + offset.endOffset() + " : " + term.toString() + " | " + type
-                                .type());
+                                .type() + " |");
             }
-            //关闭TokenStream（关闭StringReader）
             ts.end();   // Perform end-of-stream operations, e.g. set the final offset.
-
+            System.out.println(sb);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -81,6 +89,14 @@ public class IKAnalzyerTest {
             }
         }
 
+    }
+
+    private String hideChar(int i) {
+        StringBuilder hide = new StringBuilder();
+        IntStream.range(0, i).forEach(n -> {
+            hide.append('*');
+        });
+        return hide.toString();
     }
 
 }

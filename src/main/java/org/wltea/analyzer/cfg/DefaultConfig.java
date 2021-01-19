@@ -23,15 +23,15 @@
  */
 package org.wltea.analyzer.cfg;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.InvalidPropertiesFormatException;
 import java.util.List;
 import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Configuration 默认实现
@@ -46,6 +46,7 @@ public class DefaultConfig implements Configuration {
      */
     private static final String PATH_DIC_MAIN = "org/wltea/analyzer/dic/main2012.dic";
     private static final String PATH_DIC_QUANTIFIER = "org/wltea/analyzer/dic/quantifier.dic";
+    private static final String PATH_DIC_FORBIDDEN = "forbidden.dic";
 
     /**
      * 分词器配置文件路径
@@ -126,8 +127,18 @@ public class DefaultConfig implements Configuration {
      * @return String 量词词典路径
      */
     @Override
-    public String getQuantifierDicionary() {
+    public String getQuantifierDictionary() {
         return PATH_DIC_QUANTIFIER;
+    }
+
+    /**
+     * 获取违禁词
+     *
+     * @return String 违禁词路径
+     */
+    @Override
+    public String getForbiddenDictionary() {
+        return PATH_DIC_FORBIDDEN;
     }
 
     /**

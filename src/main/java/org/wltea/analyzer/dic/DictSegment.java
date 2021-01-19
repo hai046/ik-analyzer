@@ -84,7 +84,6 @@ class DictSegment implements Comparable<DictSegment> {
      * 匹配词段
      *
      * @param charArray
-     *
      * @return Hit
      */
     Hit match(char[] charArray) {
@@ -97,7 +96,6 @@ class DictSegment implements Comparable<DictSegment> {
      * @param charArray
      * @param begin
      * @param length
-     *
      * @return Hit
      */
     Hit match(char[] charArray, int begin, int length) {
@@ -111,7 +109,6 @@ class DictSegment implements Comparable<DictSegment> {
      * @param begin
      * @param length
      * @param searchHit
-     *
      * @return Hit
      */
     Hit match(char[] charArray, int begin, int length, Hit searchHit) {
@@ -230,7 +227,6 @@ class DictSegment implements Comparable<DictSegment> {
      *
      * @param keyChar
      * @param create  =1如果没有找到，则创建新的segment ; =0如果没有找到，不创建，返回null
-     *
      * @return
      */
     private DictSegment lookforSegment(Character keyChar, int create) {
@@ -293,7 +289,7 @@ class DictSegment implements Comparable<DictSegment> {
      */
     private DictSegment[] getChildrenArray() {
         if (this.childrenArray == null) {
-            synchronized(this) {
+            synchronized (this) {
                 if (this.childrenArray == null) {
                     this.childrenArray = new DictSegment[ARRAY_LENGTH_LIMIT];
                 }
@@ -308,7 +304,7 @@ class DictSegment implements Comparable<DictSegment> {
      */
     private Map<Character, DictSegment> getChildrenMap() {
         if (this.childrenMap == null) {
-            synchronized(this) {
+            synchronized (this) {
                 if (this.childrenMap == null) {
                     this.childrenMap = new HashMap<>(ARRAY_LENGTH_LIMIT * 2, 0.8f);
                 }
@@ -334,7 +330,6 @@ class DictSegment implements Comparable<DictSegment> {
      * 实现Comparable接口
      *
      * @param o
-     *
      * @return int
      */
     @Override
@@ -343,4 +338,15 @@ class DictSegment implements Comparable<DictSegment> {
         return this.nodeChar.compareTo(o.nodeChar);
     }
 
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("DictSegment{");
+        sb.append("childrenMap=").append(childrenMap);
+        sb.append(", childrenArray=").append(childrenArray == null ? "null" : Arrays.asList(childrenArray).toString());
+        sb.append(", nodeChar=").append(nodeChar);
+        sb.append(", storeSize=").append(storeSize);
+        sb.append(", nodeState=").append(nodeState);
+        sb.append('}');
+        return sb.toString();
+    }
 }

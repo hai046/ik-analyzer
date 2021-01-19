@@ -23,16 +23,19 @@
  */
 package org.wltea.analyzer.dic;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.wltea.analyzer.cfg.Configuration;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.wltea.analyzer.cfg.Configuration;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * 词典管理类,单子模式
@@ -50,6 +53,10 @@ public class Dictionary {
      * 主词典对象
      */
     private DictSegment mainDict;
+    /**
+     * 违禁词
+     */
+    private DictSegment forbidden;
 
     /**
      * 停止词词典
@@ -83,7 +90,7 @@ public class Dictionary {
      */
     public static Dictionary initial(Configuration cfg) {
         if (singleton == null) {
-            synchronized(Dictionary.class) {
+            synchronized (Dictionary.class) {
                 if (singleton == null) {
                     singleton = new Dictionary(cfg);
                     return singleton;
@@ -141,7 +148,6 @@ public class Dictionary {
      * 检索匹配主词典
      *
      * @param charArray
-     *
      * @return Hit 匹配结果描述
      */
     public Hit matchInMainDict(char[] charArray) {
@@ -154,11 +160,34 @@ public class Dictionary {
      * @param charArray
      * @param begin
      * @param length
-     *
      * @return Hit 匹配结果描述
      */
     public Hit matchInMainDict(char[] charArray, int begin, int length) {
         return singleton.mainDict.match(charArray, begin, length);
+    }
+
+    /**
+     * 检索匹配封禁词
+     *
+     * @param charArray
+     * @param begin
+     * @param length
+     * @return Hit 匹配结果描述
+     */
+    public Hit matchInForbiddenDictHit(char[] charArray, int begin, int length, Hit searchHit) {
+        return singleton.forbidden.match(charArray, begin, length, searchHit);
+    }
+
+    /**
+     * 检索匹配封禁词
+     *
+     * @param charArray
+     * @param begin
+     * @param length
+     * @return Hit 匹配结果描述
+     */
+    public Hit matchInForbiddenDict(char[] charArray, int begin, int length) {
+        return singleton.forbidden.match(charArray, begin, length);
     }
 
     /**
@@ -167,7 +196,6 @@ public class Dictionary {
      * @param charArray
      * @param begin
      * @param length
-     *
      * @return Hit 匹配结果描述
      */
     public Hit matchInQuantifierDict(char[] charArray, int begin, int length) {
@@ -180,7 +208,6 @@ public class Dictionary {
      * @param charArray
      * @param currentIndex
      * @param matchedHit
-     *
      * @return Hit
      */
     public Hit matchWithHit(char[] charArray, int currentIndex, Hit matchedHit) {
@@ -194,7 +221,6 @@ public class Dictionary {
      * @param charArray
      * @param begin
      * @param length
-     *
      * @return boolean
      */
     public boolean isStopWord(char[] charArray, int begin, int length) {
@@ -207,8 +233,18 @@ public class Dictionary {
     private void loadMainDict() {
         //建立一个主词典实例
         mainDict = new DictSegment((char) 0);
-        //读取主词典文件
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream(cfg.getMainDictionary());
+
+        load(mainDict, cfg.getMainDictionary());
+        //加载扩展词典
+        this.loadExtDict();
+    }
+
+    private void load(DictSegment dct, String mainDictionary) {
+        load(dct, mainDictionary, null);
+    }
+
+    private void load(DictSegment dct, String mainDictionary, Consumer<String> consumer) {
+        InputStream is = this.getClass().getClassLoader().getResourceAsStream(mainDictionary);
         if (is == null) {
             throw new RuntimeException("Main Dictionary not found!!!");
         }
@@ -219,7 +255,10 @@ public class Dictionary {
             do {
                 theWord = br.readLine();
                 if (theWord != null && !"".equals(theWord.trim())) {
-                    mainDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
+                    dct.fillSegment(theWord.trim().toLowerCase().toCharArray());
+                    if (consumer != null) {
+                        consumer.accept(theWord);
+                    }
                 }
             } while (theWord != null);
 
@@ -227,16 +266,17 @@ public class Dictionary {
             LOG.error("Main Dictionary loading exception.", ioe);
         } finally {
             try {
-                if (is != null) {
-                    is.close();
-                }
+                is.close();
             } catch (IOException e) {
                 LOG.error("io error.", e);
             }
         }
-        //加载扩展词典
-        this.loadExtDict();
     }
+
+    /**
+     * 这里记录文件名，可以用来搞分词
+     */
+    private Map<String, String> extraDic = new HashMap<>();
 
     /**
      * 加载用户配置的扩展词典到主词库表
@@ -245,39 +285,22 @@ public class Dictionary {
         //加载扩展词典配置
         List<String> extDictFiles = cfg.getExtDictionarys();
         if (extDictFiles != null) {
-            InputStream is;
             for (String extDictName : extDictFiles) {
                 //读取扩展词典文件
                 LOG.info("加载扩展词典:{}", extDictName);
-                is = this.getClass().getClassLoader().getResourceAsStream(extDictName);
-                //如果找不到扩展的字典，则忽略
-                if (is == null) {
-                    continue;
+                String name = extDictName;
+                int dotIndex = extDictName.indexOf('.');
+                if (dotIndex > 0) {
+                    name = extDictName.substring(0, dotIndex);
                 }
-                try {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"), 512);
-                    String theWord = null;
-                    do {
-                        theWord = br.readLine();
-                        if (theWord != null && !"".equals(theWord.trim())) {
-                            //加载扩展词典数据到主内存词典中
-                            mainDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
-                        }
-                    } while (theWord != null);
-
-                } catch (IOException ioe) {
-                    LOG.error("Extension Dictionary loading exception.", ioe);
-                } finally {
-                    try {
-                        if (is != null) {
-                            is.close();
-                        }
-                    } catch (IOException e) {
-                        LOG.error("io error.", e);
-                    }
-                }
+                String finalName = name;
+                load(mainDict, extDictName, v -> extraDic.put(v, finalName));
             }
         }
+    }
+
+    public String getDicName(String word) {
+        return extraDic.get(word);
     }
 
     /**
@@ -289,37 +312,9 @@ public class Dictionary {
         //加载扩展停止词典
         List<String> extStopWordDictFiles = cfg.getExtStopWordDictionarys();
         if (extStopWordDictFiles != null) {
-            InputStream is = null;
             for (String extStopWordDictName : extStopWordDictFiles) {
                 LOG.info("加载扩展停止词典:{}", extStopWordDictName);
-                //读取扩展词典文件
-                is = this.getClass().getClassLoader().getResourceAsStream(extStopWordDictName);
-                //如果找不到扩展的字典，则忽略
-                if (is == null) {
-                    continue;
-                }
-                try {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"), 512);
-                    String theWord = null;
-                    do {
-                        theWord = br.readLine();
-                        if (theWord != null && !"".equals(theWord.trim())) {
-                            //加载扩展停止词典数据到内存中
-                            stopWordDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
-                        }
-                    } while (theWord != null);
-
-                } catch (IOException ioe) {
-                    LOG.error("Extension Stop word Dictionary loading exception.", ioe);
-                } finally {
-                    try {
-                        if (is != null) {
-                            is.close();
-                        }
-                    } catch (IOException e) {
-                        LOG.error("io error.", e);
-                    }
-                }
+                load(stopWordDict, extStopWordDictName);
             }
         }
     }
@@ -330,33 +325,8 @@ public class Dictionary {
     private void loadQuantifierDict() {
         //建立一个量词典实例
         quantifierDict = new DictSegment((char) 0);
-        //读取量词词典文件
-        InputStream is = this.getClass().getClassLoader().getResourceAsStream(cfg.getQuantifierDicionary());
-        if (is == null) {
-            throw new RuntimeException("Quantifier Dictionary not found!!!");
-        }
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"), 512);
-            String theWord;
-            do {
-                theWord = br.readLine();
-                if (theWord != null && !"".equals(theWord.trim())) {
-                    quantifierDict.fillSegment(theWord.trim().toLowerCase().toCharArray());
-                }
-            } while (theWord != null);
+        load(quantifierDict, cfg.getQuantifierDictionary());
 
-        } catch (IOException ioe) {
-            LOG.error("Quantifier Dictionary loading exception.", ioe);
-
-        } finally {
-            try {
-                if (is != null) {
-                    is.close();
-                }
-            } catch (IOException e) {
-                LOG.error("io error.", e);
-            }
-        }
     }
 
 }

@@ -114,4 +114,14 @@ public class Hit {
         this.end = end;
     }
 
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("Hit{");
+        sb.append("hitState=").append(hitState);
+//        sb.append(", matchedDictSegment=").append(matchedDictSegment);
+        sb.append(", begin=").append(begin);
+        sb.append(", end=").append(end);
+        sb.append('}');
+        return sb.toString();
+    }
 }
