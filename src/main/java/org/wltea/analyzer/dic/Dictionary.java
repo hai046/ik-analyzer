@@ -296,7 +296,7 @@ public class Dictionary {
         }
     }
 
-    public void loadOutsideDict(String wordType, Set<String> words) {
+    public void loadOutsideDict(String wordType, Collection<String> words) {
 
         words.forEach(word -> {
             mainDict.fillSegment(word.trim().toLowerCase().toCharArray());
@@ -305,7 +305,7 @@ public class Dictionary {
 
     }
 
-    public void removeOutsideDict(Set<String> words) {
+    public void removeOutsideDict(Collection<String> words) {
         words.forEach(word -> {
             mainDict.disableSegment(word.trim().toLowerCase().toCharArray());
             extraDic.remove(word);
