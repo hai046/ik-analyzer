@@ -23,14 +23,15 @@
  */
 package org.wltea.analyzer.lucene;
 
-import java.io.IOException;
-
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import org.wltea.analyzer.core.IKSegmenter;
 import org.wltea.analyzer.core.Lexeme;
+import org.wltea.analyzer.dic.Dictionary;
+
+import java.io.IOException;
 
 /**
  * IK分词器 Lucene Tokenizer适配器类
@@ -69,6 +70,10 @@ public final class IKTokenizer extends Tokenizer {
         termAtt = addAttribute(CharTermAttribute.class);
         typeAtt = addAttribute(TypeAttribute.class);
         ikimplement = new IKSegmenter(input, useSmart);
+    }
+
+    public Dictionary getDictionary() {
+        return ikimplement.getDictionary();
     }
 
     @Override

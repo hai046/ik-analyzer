@@ -24,7 +24,7 @@
 package org.wltea.analyzer.lucene;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.Tokenizer;
+import org.wltea.analyzer.dic.Dictionary;
 
 /**
  * IK分词器，Lucene Analyzer接口实现
@@ -32,6 +32,7 @@ import org.apache.lucene.analysis.Tokenizer;
  */
 public final class IKAnalyzer extends Analyzer {
 
+    private final IKTokenizer iktokenizer;
     private boolean useSmart;
 
     /**
@@ -51,6 +52,8 @@ public final class IKAnalyzer extends Analyzer {
     public IKAnalyzer(boolean useSmart) {
         super();
         this.useSmart = useSmart;
+        iktokenizer = new IKTokenizer(this.useSmart());
+
     }
 
     public boolean useSmart() {
@@ -66,8 +69,11 @@ public final class IKAnalyzer extends Analyzer {
      */
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
-        Tokenizer iktokenizer = new IKTokenizer(this.useSmart());
         return new TokenStreamComponents(iktokenizer);
+    }
+
+    public Dictionary getDictionary() {
+        return iktokenizer.getDictionary();
     }
 
 }

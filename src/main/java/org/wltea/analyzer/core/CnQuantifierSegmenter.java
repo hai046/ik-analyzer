@@ -23,13 +23,13 @@
  */
 package org.wltea.analyzer.core;
 
+import org.wltea.analyzer.dic.Dictionary;
+import org.wltea.analyzer.dic.Hit;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import org.wltea.analyzer.dic.Dictionary;
-import org.wltea.analyzer.dic.Hit;
 
 /**
  * 中文数量词子分词器
@@ -55,6 +55,8 @@ class CnQuantifierSegmenter implements ISegmenter {
         }
     }
 
+    private final Dictionary dictionary;
+
     /**
      * 词元的开始位置，
      * 同时作为子分词器状态标识
@@ -72,7 +74,8 @@ class CnQuantifierSegmenter implements ISegmenter {
      */
     private List<Hit> countHits;
 
-    CnQuantifierSegmenter() {
+    CnQuantifierSegmenter(Dictionary dictionary) {
+        this.dictionary = dictionary;
         nStart = -1;
         nEnd = -1;
         this.countHits = new LinkedList<Hit>();
@@ -162,7 +165,7 @@ class CnQuantifierSegmenter implements ISegmenter {
                 //处理词段队列
                 Hit[] tmpArray = this.countHits.toArray(new Hit[this.countHits.size()]);
                 for (Hit hit : tmpArray) {
-                    hit = Dictionary.getSingleton().matchWithHit(context.getSegmentBuff(), context.getCursor(), hit);
+                    hit = dictionary.matchWithHit(context.getSegmentBuff(), context.getCursor(), hit);
                     if (hit.isMatch()) {
                         //输出当前的词
                         Lexeme newLexeme = new Lexeme(context.getBufferOffset(), hit.getBegin(),
@@ -183,8 +186,9 @@ class CnQuantifierSegmenter implements ISegmenter {
             //*********************************
             //对当前指针位置的字符进行单字匹配
             Hit singleCharHit =
-                    Dictionary.getSingleton().matchInQuantifierDict(context.getSegmentBuff(), context.getCursor(), 1);
-            if (singleCharHit.isMatch()) {//首字成量词词
+                    dictionary.matchInQuantifierDict(context.getSegmentBuff(), context.getCursor(), 1);
+            if (singleCharHit.isMatch()) {
+                //首字成量词词
                 //输出当前的词
                 Lexeme newLexeme = new Lexeme(context.getBufferOffset(), context.getCursor(), 1, Lexeme.TYPE_COUNT);
                 context.addLexeme(newLexeme);
@@ -193,7 +197,8 @@ class CnQuantifierSegmenter implements ISegmenter {
                     //前缀匹配则放入hit列表
                     this.countHits.add(singleCharHit);
                 }
-            } else if (singleCharHit.isPrefix()) {//首字为量词前缀
+            } else if (singleCharHit.isPrefix()) {
+                //首字为量词前缀
                 //前缀匹配则放入hit列表
                 this.countHits.add(singleCharHit);
             }

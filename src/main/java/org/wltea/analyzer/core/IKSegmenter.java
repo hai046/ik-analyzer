@@ -23,14 +23,14 @@
  */
 package org.wltea.analyzer.core;
 
+import org.wltea.analyzer.cfg.Configuration;
+import org.wltea.analyzer.cfg.DefaultConfig;
+import org.wltea.analyzer.dic.Dictionary;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.wltea.analyzer.cfg.Configuration;
-import org.wltea.analyzer.cfg.DefaultConfig;
-import org.wltea.analyzer.dic.Dictionary;
 
 /**
  * IK分词器主类
@@ -47,6 +47,7 @@ public final class IKSegmenter {
     private List<ISegmenter> segmenters;
     //分词歧义裁决器
     private IKArbitrator arbitrator;
+    private Dictionary dictionary;
 
     /**
      * IK分词器构造函数
@@ -62,6 +63,10 @@ public final class IKSegmenter {
         this.cfg = DefaultConfig.getInstance();
         this.cfg.setUseSmart(useSmart);
         this.init();
+    }
+
+    public Dictionary getDictionary() {
+        return dictionary;
     }
 
     /**
@@ -81,9 +86,9 @@ public final class IKSegmenter {
      */
     private void init() {
         //初始化词典单例
-        Dictionary.initial(this.cfg);
+        this.dictionary = Dictionary.initial(this.cfg);
         //初始化分词上下文
-        this.context = new AnalyzeContext(this.cfg);
+        this.context = new AnalyzeContext(this.cfg,dictionary);
         //加载子分词器
         this.segmenters = this.loadSegmenters();
         //加载歧义裁决器
@@ -100,9 +105,9 @@ public final class IKSegmenter {
         //处理字母的子分词器
         segmenters.add(new LetterSegmenter());
         //处理中文数量词的子分词器
-        segmenters.add(new CnQuantifierSegmenter());
+        segmenters.add(new CnQuantifierSegmenter(this.dictionary));
         //处理中文词的子分词器
-        segmenters.add(new CJKSegmenter());
+        segmenters.add(new CJKSegmenter(this.dictionary));
         return segmenters;
     }
 
@@ -110,7 +115,6 @@ public final class IKSegmenter {
      * 分词，获取下一个词元
      *
      * @return Lexeme 词元对象
-     *
      * @throws IOException
      */
     public synchronized Lexeme next() throws IOException {

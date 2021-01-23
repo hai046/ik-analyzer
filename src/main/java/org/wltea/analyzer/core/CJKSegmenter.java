@@ -38,12 +38,14 @@ class CJKSegmenter implements ISegmenter {
      * 子分词器标签
      */
     private static final String SEGMENTER_NAME = "CJK_SEGMENTER";
+    private final Dictionary dictionary;
     /**
      * 待处理的分词hit队列
      */
     private List<Hit> tmpHits;
 
-    CJKSegmenter() {
+    CJKSegmenter(Dictionary dictionary) {
+        this.dictionary = dictionary;
         this.tmpHits = new LinkedList<Hit>();
     }
 
@@ -56,7 +58,7 @@ class CJKSegmenter implements ISegmenter {
                 //处理词段队列
                 Hit[] tmpArray = this.tmpHits.toArray(new Hit[0]);
                 for (Hit hit : tmpArray) {
-                    hit = Dictionary.getSingleton().matchWithHit(context.getSegmentBuff(), context.getCursor(), hit);
+                    hit = dictionary.matchWithHit(context.getSegmentBuff(), context.getCursor(), hit);
                     if (hit.isMatch()) {
                         //输出当前的词
                         Lexeme newLexeme = new Lexeme(context.getBufferOffset(), hit.getBegin(),
@@ -77,7 +79,7 @@ class CJKSegmenter implements ISegmenter {
             //*********************************
             //再对当前指针位置的字符进行单字匹配
             Hit singleCharHit =
-                    Dictionary.getSingleton().matchInMainDict(context.getSegmentBuff(), context.getCursor(), 1);
+                    dictionary.matchInMainDict(context.getSegmentBuff(), context.getCursor(), 1);
             if (singleCharHit.isMatch()) {//首字成词
                 //输出当前的词
                 Lexeme newLexeme = new Lexeme(context.getBufferOffset(), context.getCursor(), 1, Lexeme.TYPE_CNCHAR);

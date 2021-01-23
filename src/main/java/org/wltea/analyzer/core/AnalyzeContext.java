@@ -23,16 +23,12 @@
  */
 package org.wltea.analyzer.core;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-
 import org.wltea.analyzer.cfg.Configuration;
 import org.wltea.analyzer.dic.Dictionary;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.util.*;
 
 /**
  * 分词器上下文状态
@@ -47,6 +43,7 @@ class AnalyzeContext {
      * 缓冲区耗尽的临界值
      */
     private static final int BUFF_EXHAUST_CRITICAL = 100;
+    private final Dictionary dictionary;
 
     /**
      * 字符窜读取缓冲
@@ -94,7 +91,8 @@ class AnalyzeContext {
      */
     private Configuration cfg;
 
-    public AnalyzeContext(Configuration cfg) {
+    public AnalyzeContext(Configuration cfg, Dictionary dictionary) {
+        this.dictionary = dictionary;
         this.cfg = cfg;
         this.segmentBuff = new char[BUFF_SIZE];
         this.charTypes = new int[BUFF_SIZE];
@@ -128,9 +126,7 @@ class AnalyzeContext {
      * 根据context的上下文情况，填充segmentBuff
      *
      * @param reader
-     *
      * @return 返回待分析的（有效的）字串长度
-     *
      * @throws IOException
      */
     int fillBuffer(Reader reader) throws IOException {
@@ -343,7 +339,7 @@ class AnalyzeContext {
         while (result != null) {
             //数量词合并
             this.compound(result);
-            if (Dictionary.getSingleton().isStopWord(this.segmentBuff, result.getBegin(), result.getLength())) {
+            if (dictionary.isStopWord(this.segmentBuff, result.getBegin(), result.getLength())) {
                 //是停止词继续取列表的下一个
                 result = this.results.pollFirst();
             } else {

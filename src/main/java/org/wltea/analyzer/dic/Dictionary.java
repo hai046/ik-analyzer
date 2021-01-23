@@ -23,6 +23,7 @@
  */
 package org.wltea.analyzer.dic;
 
+import com.google.common.collect.ArrayListMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wltea.analyzer.cfg.Configuration;
@@ -31,7 +32,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -41,20 +43,15 @@ public class Dictionary {
 
     private static final Logger LOG = LoggerFactory.getLogger(Dictionary.class);
 
-    /**
-     * 词典单子实例
-     */
-    private static Dictionary singleton;
+//    /**
+//     * 词典单子实例
+//     */
+//    private static Dictionary singleton;
 
     /**
      * 主词典对象
      */
     private DictSegment mainDict;
-    /**
-     * 违禁词
-     */
-    private DictSegment forbidden;
-
     /**
      * 停止词词典
      */
@@ -86,28 +83,29 @@ public class Dictionary {
      * @return Dictionary
      */
     public static Dictionary initial(Configuration cfg) {
-        if (singleton == null) {
-            synchronized (Dictionary.class) {
-                if (singleton == null) {
-                    singleton = new Dictionary(cfg);
-                    return singleton;
-                }
-            }
-        }
-        return singleton;
+//        if (singleton == null) {
+//            synchronized (Dictionary.class) {
+//                if (singleton == null) {
+//                    singleton = new Dictionary(cfg);
+//                    return singleton;
+//                }
+//            }
+//        }
+//        return singleton;
+        return new Dictionary(cfg);
     }
-
-    /**
-     * 获取词典单子实例
-     *
-     * @return Dictionary 单例对象
-     */
-    public static Dictionary getSingleton() {
-        if (singleton == null) {
-            throw new IllegalStateException("词典尚未初始化，请先调用initial方法");
-        }
-        return singleton;
-    }
+//
+//    /**
+//     * 获取词典单子实例
+//     *
+//     * @return Dictionary 单例对象
+//     */
+//    public static Dictionary getSingleton() {
+//        if (singleton == null) {
+//            throw new IllegalStateException("词典尚未初始化，请先调用initial方法");
+//        }
+//        return singleton;
+//    }
 
     /**
      * 批量加载新词条
@@ -119,7 +117,7 @@ public class Dictionary {
             for (String word : words) {
                 if (word != null) {
                     //批量加载词条到主内存词典中
-                    singleton.mainDict.fillSegment(word.trim().toLowerCase().toCharArray());
+                    mainDict.fillSegment(word.trim().toLowerCase().toCharArray());
                 }
             }
         }
@@ -135,7 +133,7 @@ public class Dictionary {
             for (String word : words) {
                 if (word != null) {
                     //批量屏蔽词条
-                    singleton.mainDict.disableSegment(word.trim().toLowerCase().toCharArray());
+                    mainDict.disableSegment(word.trim().toLowerCase().toCharArray());
                 }
             }
         }
@@ -148,7 +146,7 @@ public class Dictionary {
      * @return Hit 匹配结果描述
      */
     public Hit matchInMainDict(char[] charArray) {
-        return singleton.mainDict.match(charArray);
+        return mainDict.match(charArray);
     }
 
     /**
@@ -160,32 +158,9 @@ public class Dictionary {
      * @return Hit 匹配结果描述
      */
     public Hit matchInMainDict(char[] charArray, int begin, int length) {
-        return singleton.mainDict.match(charArray, begin, length);
+        return mainDict.match(charArray, begin, length);
     }
 
-    /**
-     * 检索匹配封禁词
-     *
-     * @param charArray
-     * @param begin
-     * @param length
-     * @return Hit 匹配结果描述
-     */
-    public Hit matchInForbiddenDictHit(char[] charArray, int begin, int length, Hit searchHit) {
-        return singleton.forbidden.match(charArray, begin, length, searchHit);
-    }
-
-    /**
-     * 检索匹配封禁词
-     *
-     * @param charArray
-     * @param begin
-     * @param length
-     * @return Hit 匹配结果描述
-     */
-    public Hit matchInForbiddenDict(char[] charArray, int begin, int length) {
-        return singleton.forbidden.match(charArray, begin, length);
-    }
 
     /**
      * 检索匹配量词词典
@@ -196,7 +171,7 @@ public class Dictionary {
      * @return Hit 匹配结果描述
      */
     public Hit matchInQuantifierDict(char[] charArray, int begin, int length) {
-        return singleton.quantifierDict.match(charArray, begin, length);
+        return quantifierDict.match(charArray, begin, length);
     }
 
     /**
@@ -221,7 +196,7 @@ public class Dictionary {
      * @return boolean
      */
     public boolean isStopWord(char[] charArray, int begin, int length) {
-        return singleton.stopWordDict.match(charArray, begin, length).isMatch();
+        return stopWordDict.match(charArray, begin, length).isMatch();
     }
 
     /**
@@ -273,7 +248,7 @@ public class Dictionary {
     /**
      * 这里记录文件名，可以用来搞分词
      */
-    private Map<String, String> extraDic = new HashMap<>();
+    private ArrayListMultimap<String, String> extraDic = ArrayListMultimap.create();
 
     /**
      * 加载用户配置的扩展词典到主词库表
@@ -305,15 +280,15 @@ public class Dictionary {
 
     }
 
-    public void removeOutsideDict(Collection<String> words) {
+    public void removeOutsideDict(String wordType, Collection<String> words) {
         words.forEach(word -> {
             mainDict.disableSegment(word.trim().toLowerCase().toCharArray());
-            extraDic.remove(word);
+            extraDic.remove(word, wordType);
         });
 
     }
 
-    public String getDicName(String word) {
+    public List<String> getDicName(String word) {
         return extraDic.get(word);
     }
 
