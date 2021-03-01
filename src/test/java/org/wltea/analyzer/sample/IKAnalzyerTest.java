@@ -32,6 +32,7 @@ import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -45,6 +46,7 @@ public class IKAnalzyerTest {
     public void testAnalyzer() {
         //构建IK分词器，使用smart分词模式
         IKAnalyzer analyzer = new IKAnalyzer(true);
+        analyzer.getDictionary().loadOutsideDict("forb", Collections.singleton("例子"));
         //获取Lucene的TokenStream对象
         TokenStream ts = null;
         String msg = "这是一个中文分词的例子，好大夫在线A股你可以直接运行它！ 找我靠我来搞，我靠你怎么能这样，我靠wechat wxin IKAnalyer can analysis english text too";
