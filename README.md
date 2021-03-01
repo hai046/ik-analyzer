@@ -1,3 +1,10 @@
+# 修改后使用
+
+- 修改`pom->distributionManagement`  上传到私服即可
+- 使用`IKAnalyzer analyzer = new IKAnalyzer(true);`初始化
+
+
+
 [![Build Status](https://travis-ci.org/blueshen/ik-analyzer.svg)](https://travis-ci.org/blueshen/ik-analyzer)
 
 Long Term Support，welcome pull request
@@ -14,6 +21,7 @@ IKAnalyzer的作者为林良益（linliangyi2007@gmail.com），项目网站为<
 Maven用法：
 
 将以下依赖加入工程的pom.xml中的依赖部分。
+
 
 ```xml
     <dependency>
@@ -34,3 +42,5 @@ Maven用法：
 关于我
 
 请访问 <https://www.shenyanchao.cn>
+
+
